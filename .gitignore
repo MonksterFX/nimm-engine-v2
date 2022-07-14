@@ -1,0 +1,11 @@
+.vscode
+.git
+.DS_Store
+.quokka*
+
+# playground files
+playground*
+
+# folders
+node_modules
+dist
