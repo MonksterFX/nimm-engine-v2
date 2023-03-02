@@ -6,9 +6,10 @@ import MatrixFunctions from './matrix';
 import { TreeNode } from './node';
 
 export type PatternSize = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type Side = 'Top' | 'Right' | 'Bottom' | 'Left';
 export type RotationDegree = '90deg' | '180deg' | '270deg';
 
-export class Pattern extends TreeNode {
+export class Pattern extends TreeNode<Pattern> {
   constructor(
     private data: BitTable,
     private sides = 0b1111 // TODO: change to dynamics
@@ -27,12 +28,44 @@ export class Pattern extends TreeNode {
   }
 
   /** removes inplace */
-  removeTo(toRow: number, col: number): Pattern {
-    for (let row = 0; row <= toRow; row++) {
-      this.data.clearBit(row, col);
-    }
+  removeTo(toRow: number, toCol: number, side: Side): Pattern {
+    type RemoveFunction = (toRow: number, toCol: number) => void;
+
+    const switchMap: Record<Side, RemoveFunction> = {
+      Top: this.removeFromTop,
+      Right: this.removeFromRight,
+      Bottom: this.removeFromBottom,
+      Left: this.removeFromLeft,
+    };
+
+    // depending on side call action
+    switchMap[side].bind(this)(toRow, toCol);
 
     return this;
+  }
+
+  private removeFromTop(toRow: number, toCol: number) {
+    for (let row = 0; row <= toRow; row++) {
+      this.data.clearBit(row, toCol);
+    }
+  }
+
+  private removeFromRight(toRow: number, toCol: number) {
+    for (let col = this.data.size - 1; col >= toRow; col--) {
+      this.data.clearBit(toRow, col);
+    }
+  }
+
+  private removeFromBottom(toRow: number, toCol: number) {
+    for (let row = this.data.size - 1; row >= toRow; row--) {
+      this.data.clearBit(row, toCol);
+    }
+  }
+
+  private removeFromLeft(toRow: number, toCol: number) {
+    for (let col = 0; col <= toCol; col++) {
+      this.data.clearBit(toRow, col);
+    }
   }
 
   /**

@@ -1,6 +1,7 @@
 import { GameOptions, Orientation } from './interfaces';
 import { createEmtpy2D } from '../utils';
 import { Field } from './field';
+import { BitTable } from '../ai/utils/bittable';
 
 export class GameState {
   private gameField: Field[][] = [];
@@ -144,7 +145,6 @@ export class GameState {
 
     const byteSize = 4 + 3 + Math.ceil(bitSize / 8);
 
-    const table = new BitTable(byteSize);
-    return table;
+    return BitTable.full(Math.ceil(bitSize / 8));
   }
 }
