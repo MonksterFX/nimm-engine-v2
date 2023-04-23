@@ -1,4 +1,4 @@
-import { Field } from './models/field';
+import { Field } from './models/field.js';
 
 export function createEmtpy2D(rows: number, cols: number) {
   return Array(rows)

@@ -1,12 +1,12 @@
-import { Field } from '../models/field';
-import { GameState } from '../models/gamestate';
-import { Move } from '../models/interfaces';
+import { Field } from '../models/field.js';
+import { GameState } from '../models/gamestate.js';
+import { Move } from '../models/interfaces.js';
 import {
   countArray,
   randomBetween,
   randomSelect,
   takeableIndices,
-} from '../utils';
+} from '../utils.js';
 
 export class GameEngine {
   gameState: GameState;

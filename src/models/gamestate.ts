@@ -1,7 +1,7 @@
-import { GameOptions, Orientation } from './interfaces';
-import { createEmtpy2D } from '../utils';
-import { Field } from './field';
-import { BitTable } from '../ai/utils/bittable';
+import { GameOptions, Orientation } from './interfaces.js';
+import { createEmtpy2D } from '../utils.js';
+import { Field } from './field.js';
+import { BitTable } from '../ai/utils/bittable.js';
 
 export class GameState {
   private gameField: Field[][] = [];
@@ -40,6 +40,10 @@ export class GameState {
   // TODO: Deep Copy
   public get columns(): Field[][] {
     return this.gameFieldInverted;
+  }
+
+  flat() {
+    return this.gameField.flat();
   }
 
   // TODO: Deep Copy

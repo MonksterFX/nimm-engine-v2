@@ -1,9 +1,9 @@
 import { assert } from 'console';
 import { randomUUID } from 'crypto';
-import BitUtils from './bit';
-import { BitTable } from './bittable';
-import MatrixFunctions from './matrix';
-import { TreeNode } from './node';
+import BitUtils from './bit.js';
+import { BitTable } from './bittable.js';
+import MatrixFunctions from './matrix.js';
+import { TreeNode } from './node.js';
 
 export type PatternSize = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type Side = 'Top' | 'Right' | 'Bottom' | 'Left';

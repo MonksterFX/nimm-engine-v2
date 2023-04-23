@@ -1,4 +1,4 @@
-import { Field } from '../models/field';
+import { Field } from '../models/field.js';
 
 export function findPatterns(gameField: Field[][]) {
   let currentGroup = 1;
@@ -62,9 +62,6 @@ export function getPatternArea(fields: Field[][], patternIndex: number) {
   return { min, max };
 }
 
-export function defineRotation(){
-
+export function defineRotation() {
   // left croner
-
-
 }

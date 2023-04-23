@@ -1,5 +1,5 @@
-import { findPatterns, getPatternArea } from '../engine/pattern';
-import { Field } from '../models/field';
+import { findPatterns, getPatternArea } from '../engine/pattern.js';
+import { Field } from '../models/field.js';
 
 function plotField(gameField: Field[][]) {
   const plot = gameField.map((row) => row.map((field) => field.state));

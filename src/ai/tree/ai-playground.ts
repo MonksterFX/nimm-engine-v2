@@ -1,5 +1,5 @@
-import { GameState } from '../../models/gamestate';
-import { createGameGraph, currentTreeSize } from '../tree/gamegraph';
+import { GameState } from '../../models/gamestate.js';
+import { createGameGraph, currentTreeSize } from '../tree/gamegraph.js';
 
 const game = new GameState();
 game.init({ size: [5, 4] });

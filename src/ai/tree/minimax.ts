@@ -1,6 +1,6 @@
 // https://www.youtube.com/watch?v=l-hh51ncgDI
 
-import { TreeNode } from './tree';
+import { TreeNode } from './tree.js';
 
 function evaluate(state: any, aiMove: boolean): number {
   const pointFactor = aiMove ? -1 : 1;

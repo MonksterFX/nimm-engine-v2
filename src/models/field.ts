@@ -1,4 +1,4 @@
-import { MoveInfo } from './interfaces';
+import { MoveInfo } from './interfaces.js';
 
 export class Field {
   readonly id: number;

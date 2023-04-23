@@ -1,7 +1,12 @@
 import { assert } from 'console';
 import { randomUUID } from 'crypto';
-import { BitTable } from '../utils/bittable';
-import { Pattern, PatternSize, RotationDegree, Side } from '../utils/pattern';
+import { BitTable } from '../utils/bittable.js';
+import {
+  Pattern,
+  PatternSize,
+  RotationDegree,
+  Side,
+} from '../utils/pattern.js';
 
 const SIDES: Side[] = ['Top', 'Right', 'Bottom', 'Left'];
 

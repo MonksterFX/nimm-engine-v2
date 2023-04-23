@@ -1,11 +1,11 @@
 // CLI - Beta
 // TODO: refractor whole process
 
-const readline = require('readline');
-import { GameEngine } from '../engine';
-import { GameState } from '../models/gamestate';
-import { Orientation } from '../models/interfaces';
-import plotter from './plotter';
+import readline from 'readline';
+import { GameEngine } from '../engine/index.js';
+import { GameState } from '../models/gamestate.js';
+import { Orientation } from '../models/interfaces.js';
+import plotter from './plotter.js';
 
 // flags
 const SHOW_PATTERNS = true;

@@ -1,5 +1,4 @@
-import { GameState } from '../../models/gamestate';
-import BitUtils from './bit';
+import BitUtils from './bit.js';
 
 /**
  * bit representation of a pattern with size * size

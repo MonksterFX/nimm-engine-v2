@@ -1,8 +1,8 @@
 import { cloneDeep } from 'lodash';
-import { GameState } from '../../models/gamestate';
-import { Orientation } from '../../models/interfaces';
-import { TreeNode } from './tree';
-import plot from '../../cli/plotter';
+import { GameState } from '../../models/gamestate.js';
+import { Orientation } from '../../models/interfaces.js';
+import { TreeNode } from './tree.js';
+import plot from '../../cli/plotter.js';
 
 type ValidMove = {
   row: number;

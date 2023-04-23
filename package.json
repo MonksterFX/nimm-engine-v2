@@ -2,9 +2,11 @@
   "name": "nimm-engine-v2",
   "version": "0.0.1",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "type": "module",
   "scripts": {
-    "cli": "npx node dist/cli/index.js",
+    "cli": "npx node dist/src/cli/index.js",
     "cli:dev": "npx ts-node src/cli/index.ts",
     "build": "npx tsc"
   },
@@ -14,7 +16,7 @@
     "@types/lodash": "^4.14.178",
     "lodash": "^4.17.21",
     "readline": "^1.3.0",
-    "typescript": "^4.5.2"
+    "typescript": "^5.0.4"
   },
   "devDependencies": {
     "@types/node": "^16.11.9",
