@@ -42,8 +42,17 @@ export class GameState {
     return this.gameFieldInverted;
   }
 
-  flat() {
-    return this.gameField.flat();
+  getById(id: number) {
+    // find row and col of id
+    for (let rowIndex = 0; rowIndex < this.rows.length; rowIndex++) {
+      for (let colIndex = 0; colIndex < this.columns.length; colIndex++) {
+        if (this.rows[rowIndex][colIndex].id === id) {
+          return this.rows[rowIndex][colIndex];
+        }
+      }
+    }
+
+    throw new Error(`field with id ${id} is not existing`);
   }
 
   // TODO: Deep Copy
@@ -75,6 +84,33 @@ export class GameState {
 
   isFinished(): boolean {
     return this.gameField.flat().filter((v) => v.state === 1).length <= 1;
+  }
+
+  /**
+   * returns all valid ids for the next move for a given orientation
+   * @param orientation
+   */
+  getValidMoves(orientation: Orientation) {
+    const idx: number[] = [];
+    const length = this.getSideLength(orientation);
+
+    for (let i = 0; i < length; i++) {
+      const arr = this.getFromSide(i, orientation);
+
+      let stoneFlag = false;
+
+      for (let step = 0; step < arr.length; step++) {
+        // exit condition
+        if (arr[step].state === 0 && stoneFlag) break;
+
+        if (arr[step].state === 1) {
+          stoneFlag = true;
+          idx.push(arr[step].id);
+        }
+      }
+    }
+
+    return idx;
   }
 
   isValidMove(row: number, col: number, orientation: Orientation): boolean;
@@ -115,6 +151,12 @@ export class GameState {
 
     // if no stone was hit, the move is invalid
     return hitFirst;
+  }
+
+  takeById(id: number, orientation: Orientation) {
+    const field = this.getById(id);
+
+    return this.take(field?.index[0], field?.index[1], orientation);
   }
 
   take(row: number, column: number, orientation: Orientation): number {
