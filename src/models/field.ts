@@ -7,6 +7,10 @@ export class Field {
   static idCounter = 0;
   state: number = 1;
 
+  static resetCounter() {
+    Field.idCounter = 0;
+  }
+
   constructor(row: number, col: number) {
     this.id = Field.idCounter;
     this.index = [row, col];

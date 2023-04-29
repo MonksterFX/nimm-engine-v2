@@ -1,4 +1,4 @@
-import { GameOptions, Orientation } from './interfaces.js';
+import { GameOptions, Orientation, Snapshot } from './interfaces.js';
 import { createEmtpy2D } from '../utils.js';
 import { Field } from './field.js';
 import { BitTable } from '../ai/utils/bittable.js';
@@ -14,6 +14,8 @@ export class GameState {
   }
 
   init(gameOptions: GameOptions): GameState {
+    // TODO: hotfix
+    Field.resetCounter();
     // prefill array
     this.gameField = createEmtpy2D(...gameOptions.size);
     this.gameFieldInverted = createEmtpy2D(
@@ -113,6 +115,11 @@ export class GameState {
     return idx;
   }
 
+  isValidMoveByIndex(id: number, orientation: Orientation) {
+    const field = this.getById(id);
+    return this.isValidMove(field.index[0], field.index[1], orientation);
+  }
+
   isValidMove(row: number, col: number, orientation: Orientation): boolean;
 
   isValidMove(arr: Field[], index: number): boolean;
@@ -178,6 +185,27 @@ export class GameState {
 
     // return number of stone taken
     return protocol.reduce((last, current) => (current ? last + 1 : last), 0);
+  }
+
+  /** export snapshot game state */
+  save(): Snapshot {
+    return {
+      gameOptions: { size: [this.rows.length, this.columns.length] },
+      data: this.gameField.map((row) => row.map((field) => field.state)),
+    };
+  }
+
+  /** restore game state from snapshot */
+  static load({ gameOptions, data }: Snapshot): GameState {
+    // Hotfix
+    Field.resetCounter();
+    const game = new this(gameOptions);
+    for (let row = 0; row < game.gameField.length; row++) {
+      for (let col = 0; col < game.gameField[0].length; col++) {
+        game.gameField[row][col].state = data[row][col];
+      }
+    }
+    return game;
   }
 
   get BitTable() {

@@ -23,3 +23,8 @@ export enum Orientation {
   LEFT = 1,
   RIGHT = -1,
 }
+
+export interface Snapshot {
+  gameOptions: GameOptions;
+  data: number[][];
+}

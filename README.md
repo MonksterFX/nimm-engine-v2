@@ -17,3 +17,7 @@ From [Wikipedia](https://en.wikipedia.org/wiki/Nim)
 ## how to play
 
 tbd.
+
+## local developement with vite
+
+npm link not working because ES commonjs. Pack with npm pack and include with
