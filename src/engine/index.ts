@@ -1,72 +1,52 @@
-import { Field } from '../models/field.js';
 import { GameState } from '../models/gamestate.js';
-import { Move } from '../models/interfaces.js';
+import { MoveWithoutPlayer, PlayerType } from '../models/interfaces.js';
 import {
-  countArray,
-  randomBetween,
   randomSelect,
-  takeableIndices,
 } from '../utils.js';
 
-export class GameEngine {
-  gameState: GameState;
+import { Solver } from '../ai/solver/solver.js';
+import { MCTSSolver } from '../ai/solver/mcts.js';
 
-  constructor(gameState: GameState) {
+/**
+ * Multiplayer Game Engine
+ */
+export class GameEngine {
+  private gameState: GameState;
+  private players: [PlayerType, PlayerType];
+  private options: { difficulty: 'easy' | 'hard' };
+  private solver: Solver;
+
+  constructor(gameState: GameState, players: [PlayerType, PlayerType], options: { difficulty: 'easy' | 'hard' } = { difficulty: 'hard' }) {
     this.gameState = gameState;
+    this.players = players;
+    this.options = options;
+    this.solver = new MCTSSolver();
   }
 
-  nextMove(): Move {
+  /**
+   * Get the next move for the current player
+   * @returns The next move for the current player
+   */
+  nextMove(): MoveWithoutPlayer {
+    if (this.options.difficulty === 'hard') {
+      const bestMove = this.solver.bestMove(this.gameState, 'win');
+      if(!bestMove) throw new Error('no winning move exists');
+      const position = this.gameState.convertIdToPosition(bestMove.id);
+      return { orientation: bestMove.orientation, position: [position.row, position.col] };
+    }
+    console.warn('no winning move exists, falling back to random move');
     return this.randomMove();
   }
 
-  //TODO: move to ai - seperation of concerns
-  randomMove(): Move {
-    // declaration return value
-    let takePosition;
-
-    // randomly select a side/edge to take stones from
-    const side = randomSelect([-2, -1, 1, 2]);
-
-    // TODO: move to gamestate
-    // calculate length of selected side
-    const sideLength =
-      side % 2 === 0
-        ? this.gameState.columns.length
-        : this.gameState.rows.length;
-
-    // select row/col index to select from
-    const startIndex = randomBetween(0, sideLength - 1);
-
-    // search a position to take from
-    for (let x = 0; x < sideLength; x++) {
-      const index = (startIndex + x) % sideLength;
-
-      // extract row/colum from state
-      const fields = this.gameState.getFromSide(index, side);
-
-      // check if row/column has more than one stone which the engine can take
-      if (countArray<Field>(fields, 'state', 1) > 0) {
-        // get all indices we can take stones from
-        const takeRange = takeableIndices(fields);
-
-        // TODO: double checked?
-        if (!takeRange) continue;
-
-        // select a random field index
-        takePosition = fields[randomBetween(...takeRange)].index;
-
-        break;
-      }
-    }
-
-    if (!takePosition) {
-      throw Error('no move possible');
-    }
+  //TODO: move to ai - seperation of concerns, add change to winning parameter
+  randomMove(): MoveWithoutPlayer {
+    const validMoves = this.gameState.getAllValidMoves();
+    const randomMove = randomSelect(validMoves);
+    const position = this.gameState.convertIdToPosition(randomMove.id);
 
     return {
-      player: { name: 'system' },
-      orientation: side,
-      position: takePosition,
+      orientation: randomMove.orientation,
+      position: [position.row, position.col],
     };
   }
 }

@@ -27,31 +27,42 @@ The AI’s goal is simple:
 
 ---
 
-## 2. Repository Structure (Expected)
+## 2. Repository Structure
 
-From the repository layout:
+The actual repository layout:
 
 ```
 src/
- ├ engine/   # Game rules, state, move generation
- ├ ai/       # AI logic (we add solver here)
- └ cli/      # Human / AI turn control
+ ├ engine/        # Game rules, state, move generation
+ ├ ai/            # AI logic
+ │  └ solver/     # Solver implementations
+ │     ├ solver.ts    # Abstract Solver base class
+ │     ├ minimax.ts   # MinimaxSolver implementation
+ │     └ utils.ts     # Helper functions (getLegalMoves, applyMove, isWinning)
+ ├ models/        # Game state and interface definitions
+ └ cli/           # Human / AI turn control
 ```
 
-The AI implementation should live inside the **`ai` directory** and only depend on the engine API.
+The AI implementation lives in the **`ai/solver` directory** and only depends on the engine API. Helper functions are kept in the AI module (not the engine) to maintain separation of concerns for multiplayer support.
 
 ---
 
 ## 3. Required Engine Functions
 
-The AI solver assumes the engine already provides:
+The AI solver uses the engine's public API:
 
-* `GameState` – full board state
-* `Move` – representation of a move
-* `getLegalMoves(state)` – generates all valid moves
-* `applyMove(state, move)` – returns the next state
+* `GameState` – full board state class with methods:
+  * `isValidMove(row, col, orientation)` – checks if a move is valid
+  * `take(row, col, orientation)` – applies a move (mutates state)
+  * `save()` – exports state as a snapshot
+  * `load(snapshot)` – static method to restore state from snapshot
+* `Move` – interface representing a move with `player`, `orientation`, and `position`
 
-If these do not yet exist, they must be implemented in `engine` first.
+The AI module provides its own helper functions:
+* `getLegalMoves(state)` – generates all valid moves (in `ai/solver/utils.ts`)
+* `applyMove(state, move)` – returns a new state with move applied (in `ai/solver/utils.ts`)
+
+These helpers are kept in the AI module since they're only needed for the solver, allowing the engine to remain focused on game state management for both human multiplayer and AI modes.
 
 ---
 
@@ -68,22 +79,48 @@ Terminal position (no legal moves) is **losing**.
 
 ---
 
-## 5. Solver Implementation (TypeScript-style pseudocode)
+## 5. Solver Implementation
 
-Create a new file:
+The solver is implemented using an object-oriented design with an abstract base class:
+
+### File Structure
 
 ```
-src/ai/solver.ts
+src/ai/solver/
+ ├ solver.ts    # Abstract Solver base class
+ ├ minimax.ts   # MinimaxSolver implementation
+ └ utils.ts     # Helper functions
 ```
+
+### Abstract Solver Base Class
+
+**File**: `src/ai/solver/solver.ts`
 
 ```ts
-import { GameState, Move, getLegalMoves, applyMove } from '../engine'
+import { GameState } from "../../models/gamestate"
+import { Move } from "../../models/interfaces"
 
-const memo = new Map<string, boolean>()
-
-function stateKey(state: GameState): string {
-  return JSON.stringify(state)
+export abstract class Solver {
+    abstract readonly name: string
+    abstract readonly description: string
+    abstract getNextMove(gameState: GameState): Move | null;
 }
+```
+
+### Helper Functions
+
+**File**: `src/ai/solver/utils.ts`
+
+Contains the core logic:
+- `getLegalMoves(state)` – generates all valid moves for a game state
+- `applyMove(state, move)` – clones state and applies move (non-mutating)
+- `isWinning(state)` – recursive win/loss evaluation with memoization
+- `stateKey(state)` – generates unique key for memoization
+
+The `isWinning` function uses memoization to cache results:
+
+```ts
+const memo = new Map<string, boolean>()
 
 export function isWinning(state: GameState): boolean {
   const key = stateKey(state)
@@ -92,29 +129,58 @@ export function isWinning(state: GameState): boolean {
   const moves = getLegalMoves(state)
   if (moves.length === 0) {
     memo.set(key, false)
-    return false
+    return false  // Terminal position is losing
   }
 
   for (const move of moves) {
-    const next = applyMove(state, move)
-    if (!isWinning(next)) {
+    const nextState = applyMove(state, move)
+    if (!isWinning(nextState)) {
       memo.set(key, true)
-      return true
+      return true  // Found a winning move
     }
   }
 
   memo.set(key, false)
-  return false
+  return false  // All moves lead to winning positions for opponent
 }
+```
 
-export function chooseBestMove(state: GameState): Move | null {
-  for (const move of getLegalMoves(state)) {
-    const next = applyMove(state, move)
-    if (!isWinning(next)) {
-      return move
+### MinimaxSolver Implementation
+
+**File**: `src/ai/solver/minimax.ts`
+
+```ts
+import { Solver } from './solver'
+import { GameState } from '../../models/gamestate'
+import { Move } from '../../models/interfaces'
+import { getLegalMoves, applyMove, isWinning } from './utils'
+
+export class MinimaxSolver extends Solver {
+    readonly name = 'Minimax Solver'
+    readonly description = 'A solver that uses the minimax algorithm to find the best move'
+    
+    getNextMove(gameState: GameState): Move | null {
+      const moves = getLegalMoves(gameState)
+      
+      for (const move of moves) {
+        const nextState = applyMove(gameState, move)
+        if (!isWinning(nextState)) {
+          // This move leads to a losing position for the opponent
+          return { ...move, player: { name: 'ai' } }
+        }
+      }
+      
+      return null  // No winning move exists
     }
-  }
-  return null
+}
+```
+
+For convenience, standalone functions are also exported:
+
+```ts
+export function chooseBestMove(state: GameState): Move | null {
+  const solver = new MinimaxSolver()
+  return solver.getNextMove(state)
 }
 ```
 
@@ -124,38 +190,63 @@ This produces a **perfect-play opponent**.
 
 ## 6. Integrating into the Game Loop
 
-In the CLI or game controller (where turns are handled):
+The solver is integrated into `GameEngine`:
+
+**File**: `src/engine/index.ts`
 
 ```ts
-import { chooseBestMove } from '../ai/solver'
+import { chooseBestMove } from '../ai/solver/minimax'
 
-if (currentPlayer === 'AI') {
-  const move = chooseBestMove(gameState)
-  if (move) {
-    gameState = applyMove(gameState, move)
+export class GameEngine {
+  private gameState: GameState
+  private options: { difficulty: 'easy' | 'hard' }
+
+  nextMove(): Move {
+    if (this.options.difficulty === 'hard') {
+      const bestMove = chooseBestMove(this.gameState)
+      if (bestMove) {
+        return bestMove
+      }
+      // Fall back to random move if no winning move exists
+    }
+    return this.randomMove()
   }
 }
 ```
 
-If no winning move exists, the AI will return `null` and any legal move may be played.
+Alternatively, you can use the solver directly:
+
+```ts
+import { MinimaxSolver } from '../ai/solver/minimax'
+
+const solver = new MinimaxSolver()
+const move = solver.getNextMove(gameState)
+
+if (move) {
+  gameState.take(move.position[0], move.position[1], move.orientation)
+}
+```
+
+If no winning move exists, the AI will return `null` and any legal move may be played (the engine falls back to a random move).
 
 ---
 
-## 7. Difficulty Levels (Optional)
+## 7. Difficulty Levels
 
-You can easily add difficulty modes:
+The `GameEngine` supports difficulty modes:
 
-* **Easy** – random legal move
-* **Medium** – depth-limited solver
-* **Hard** – full solver (this implementation)
+* **Easy** – random legal move (uses `randomMove()`)
+* **Hard** – full minimax solver (uses `chooseBestMove()`)
 
-Example:
+The difficulty is set when creating the engine:
 
 ```ts
-if (difficulty === 'easy') randomMove()
-else if (difficulty === 'medium') shallowSearch()
-else chooseBestMove()
+const engine = new GameEngine(gameState, ['human', 'ai'], { difficulty: 'hard' })
 ```
+
+Future enhancements could add:
+* **Medium** – depth-limited solver (not yet implemented)
+* Additional solver implementations extending the `Solver` base class
 
 ---
 
@@ -190,4 +281,4 @@ This is the same theoretical foundation used for classic Nim and other take-away
 
 ---
 
-**Result:** You now have a clean, maintainable, perfect single-player AI integrated into `nimm-engine-v2`.
+**Result:** You now have a clean, maintainable, perfect single-player AI integrated into `nimm-engine-v2`. The implementation uses an object-oriented design with an abstract `Solver` base class, making it easy to add new solver implementations in the future. Helper functions are kept in the AI module to maintain separation of concerns, allowing the engine to support both human multiplayer and AI modes.

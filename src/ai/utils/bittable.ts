@@ -72,4 +72,10 @@ export class BitTable {
   get byteSize() {
     return this.data.byteLength;
   }
+
+  getKeyString(): string {
+    // TODO: only runs in node, not in browser - add a polyfill
+    // TODO: check for performance
+    return Buffer.from(this.data).toString('hex');
+  }
 }

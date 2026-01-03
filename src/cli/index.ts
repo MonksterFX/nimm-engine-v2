@@ -8,13 +8,11 @@ import { Orientation } from '../models/interfaces.js';
 import plotter from './plotter.js';
 
 // flags
-const SHOW_PATTERNS = true;
+const SHOW_PATTERNS = false;
 
 // init game
 const game = new GameState();
-const engine = new GameEngine(game);
-
-game.init({ size: [6, 6] });
+const engine = new GameEngine(game, ['human', 'ai'], { difficulty: 'hard' });
 
 // TODO: options
 // -h: help
@@ -52,11 +50,28 @@ function playerTwoMove(): boolean {
 // initial plot
 plotter.field(game.rows);
 
+rl.question('Enter board size (e.g. 6x6): ', (answer) => {
+  const match = answer.trim().match(/^(\d+)\s*[xX]\s*(\d+)$/);
+  let size: [number, number] = [6, 6]; // default
+  if (match) {
+    size = [parseInt(match[1]), parseInt(match[2])];
+  } else {
+    console.log('Invalid input. Using default size 6x6.');
+  }
+
+  game.init({ size });
+
+  // initial plot after init
+  plotter.field(game.rows);
+  rl.prompt();
+});
+
 // this is a loop
 rl.on('line', (line: string) => {
   // check for winning
   if (game.isFinished()) {
     console.log('You Lost!');
+    rl.close();
   }
 
   try {

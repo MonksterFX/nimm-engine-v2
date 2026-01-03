@@ -7,9 +7,10 @@
   "type": "commonjs",
   "scripts": {
     "cli": "npx node dist/src/cli/index.js",
-    "cli:dev": "npx ts-node src/cli/index.ts",
+    "cli:dev": "npx tsx src/cli/index.ts",
     "build": "npx tsc",
-    "vite-pack": "npm run build && npm pack --pack-destination package"
+    "vite-pack": "npm run build && npm pack --pack-destination package",
+    "test:performance": "npx tsx performance/mcts.ts"
   },
   "author": "",
   "license": "MIT",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.11.9",
-    "ts-node": "^10.8.2"
+    "ts-node": "^10.8.2",
+    "tsx": "^4.7.0"
   }
 }
