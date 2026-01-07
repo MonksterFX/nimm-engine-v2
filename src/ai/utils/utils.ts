@@ -1,4 +1,4 @@
-import { Orientation } from "../../models/interfaces";
+import { Orientation } from "../../models/interfaces.js";
 
 export function convertOrientation(orientation: Orientation): string {
     switch(orientation) {

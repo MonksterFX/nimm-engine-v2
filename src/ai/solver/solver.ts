@@ -1,5 +1,5 @@
-import { GameState } from "../../models/gamestate"
-import { Orientation } from "../../models/interfaces"
+import { GameState } from "../../models/gamestate.js"
+import { Orientation } from "../../models/interfaces.js"
 
 export type Move = {
     id: number;

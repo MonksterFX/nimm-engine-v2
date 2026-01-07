@@ -1,16 +1,20 @@
 {
   "name": "nimm-engine-v2",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "cli": "npx node dist/src/cli/index.js",
     "cli:dev": "npx tsx src/cli/index.ts",
     "build": "npx tsc",
+    "build:c": "gcc -Wall -Wextra -std=c99 -lm performance/single-run.c -o performance/single-run",
+    "build:wasm": "emcc -Wall -Wextra -std=c99 -O3 -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s EXPORTED_RUNTIME_METHODS='[\"UTF8ToString\",\"HEAP32\",\"_malloc\",\"_free\"]' -s EXPORT_NAME='createModule' performance/single-run-wasm.c -o performance/single-run-wasm.js -lm",
     "vite-pack": "npm run build && npm pack --pack-destination package",
-    "test:performance": "npx tsx performance/mcts.ts"
+    "test:performance": "npx tsx performance/single-run.ts",
+    "test:performance:c": "npm run build:c && npx tsx performance/test-single-run-c.ts",
+    "profile:performance": "tsc --project tsconfig.profiling.json && npx 0x -o dist/performance/single-run.js"
   },
   "author": "",
   "license": "MIT",
@@ -22,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.11.9",
+    "0x": "^6.0.0",
     "ts-node": "^10.8.2",
     "tsx": "^4.7.0"
   }

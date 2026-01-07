@@ -1,24 +1,62 @@
-import { Move, Solver } from "./solver";
-import { GameState } from "../../models/gamestate";
+import { Move, Solver } from "./solver.js";
+import { GameState } from "../../models/gamestate.js";
 
 export class MCTSSolver implements Solver {
   readonly name = "MCTS Solver";
   readonly description =
     "A solver that uses the MCTS algorithm to find the best move";
 
-  mcts: MCTS | null = null;
+  private mcts: MCTS | null = null;
+  private currentState: GameState | null = null;
 
+  /**
+   * Initializes the solver with a game state
+   * @param gameState - The initial game state
+   */
   initialize(gameState: GameState): void {
-    this.mcts = new MCTS(gameState);
+    this.currentState = gameState;
+    this.mcts = new MCTS(gameState.clone());
   }
 
-  bestMove(): Move | null {
-    this.mcts?.run(100);
-    return this.mcts?.bestMove() ?? null;
+  /**
+   * Gets the best move from the current game state
+   * @param gameState - The current game state
+   * @param optimizeFor - Whether to optimize for 'win' or 'loss' (currently only 'win' is supported)
+   * @returns The best move or null if no moves are available
+   */
+  bestMove(gameState: GameState, optimizeFor: "win" | "loss"): Move | null {
+    // Initialize if not already initialized or if state changed
+    if (!this.mcts || this.currentState !== gameState) {
+      this.initialize(gameState);
+    }
+
+    // Run MCTS with iterations (more iterations = better play, but slower)
+    const iterations = optimizeFor === "win" ? 500 : 200;
+    this.mcts.run(iterations);
+
+    const move = this.mcts.bestMove();
+    if (!move) {
+      // Fallback: return a random move if MCTS didn't find one
+      const validMoves = gameState.getAllValidMoves();
+      if (validMoves.length === 0) return null;
+      const randomMove =
+        validMoves[Math.floor(Math.random() * validMoves.length)];
+      return { id: randomMove.id, orientation: randomMove.orientation };
+    }
+
+    return move;
   }
 
+  /**
+   * Updates the solver after a move has been made
+   * @param move - The move that was made
+   * @param gameState - The new game state after the move
+   */
   afterMove(move: any, gameState: GameState): void {
-    this.mcts?.advanceRoot(move, gameState);
+    if (this.mcts) {
+      this.mcts.advanceRoot(move, gameState);
+    }
+    this.currentState = gameState;
   }
 }
 
@@ -86,7 +124,7 @@ export class MCTS {
     const move = node.untriedMoves.pop();
     const nextState = node.state.clone();
 
-    console.assert(move, 'move is undefined');
+    console.assert(move, "move is undefined");
     nextState.takeById(move!.id, move!.orientation);
 
     const child = new MCTSNode(nextState, node, move);
@@ -103,7 +141,7 @@ export class MCTS {
       simState.takeById(move.id, move.orientation);
     }
 
-    return simState.getCurrentPlayer();
+    return simState.getCurrentPlayer() === 0 ? 1 : 0;
   }
 
   backpropagate(node: MCTSNode, winner: number): void {
@@ -117,18 +155,23 @@ export class MCTS {
     }
   }
 
-  bestMove(): any {
+  bestMove(): Move | null {
+    if (this.root.children.length === 0) {
+      // No children means no moves available or not expanded yet
+      return null;
+    }
     const best = this.root.children.reduce((a, b) =>
       a.visits > b.visits ? a : b
     );
     return best.move;
   }
-
-  advanceRoot(move: any, newState: GameState): void {
-    const child = this.root.children.find((c) => c.move === move);
-    if (!child) {
-      console.warn("advanceRoot: child not found");
-    }
-    this.root = child ?? new MCTSNode(newState, null);
-  }
+  
+  // should not be used
+  // advanceRoot(move: any, newState: GameState): void {
+  //   const child = this.root.children.find((c) => c.move === move);
+  //   if (!child) {
+  //     console.warn("advanceRoot: child not found");
+  //   }
+  //   this.root = child ?? new MCTSNode(newState, null);
+  // }
 }
