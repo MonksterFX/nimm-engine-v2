@@ -2,19 +2,18 @@
 // TODO: refractor whole process
 
 import readline from 'readline';
-import { GameEngine } from '../engine/index.js';
 import { GameState } from '../models/gamestate.js';
 import { Orientation } from '../models/interfaces.js';
 import plotter from './plotter.js';
+import { MCTSSolver } from '../ai/solver/mcts.js';
 
 // flags
-const SHOW_PATTERNS = true;
+const SHOW_PATTERNS = false;
 
 // init game
 const game = new GameState();
-const engine = new GameEngine(game);
-
-game.init({ size: [6, 6] });
+const solver = new MCTSSolver();
+solver.initialize(game);
 
 // TODO: options
 // -h: help
@@ -52,11 +51,28 @@ function playerTwoMove(): boolean {
 // initial plot
 plotter.field(game.rows);
 
+rl.question('Enter board size (e.g. 6x6): ', (answer) => {
+  const match = answer.trim().match(/^(\d+)\s*[xX]\s*(\d+)$/);
+  let size: [number, number] = [6, 6]; // default
+  if (match) {
+    size = [parseInt(match[1]), parseInt(match[2])];
+  } else {
+    console.log('Invalid input. Using default size 6x6.');
+  }
+
+  game.init({ size });
+
+  // initial plot after init
+  plotter.field(game.rows);
+  rl.prompt();
+});
+
 // this is a loop
 rl.on('line', (line: string) => {
   // check for winning
   if (game.isFinished()) {
     console.log('You Lost!');
+    rl.close();
   }
 
   try {
@@ -79,8 +95,17 @@ rl.on('line', (line: string) => {
   // engine move
   console.log('ai moves');
 
-  const eMove = engine.nextMove();
-  game.take(eMove.position[0], eMove.position[1], eMove.orientation);
+  // AI is player 1, because HUMAN is starting first
+  const move = solver.bestMove(1); 
+
+  if (move === null) {
+    console.log('you won');
+    rl.close();
+    return;
+  }
+
+  const eMove = game.takeById(move.id, move.orientation);
+
   plotter.field(game.rows);
 
   if (SHOW_PATTERNS) {

@@ -1,10 +1,18 @@
 import { MoveInfo } from './interfaces.js';
 
 export class Field {
-  readonly id: number;
-  readonly index: [number, number];
-  private patternGroupNumber: number = -1;
   static idCounter = 0;
+
+  id: number;
+
+  /**
+   * Position of the field in the game field
+   * [row, column]
+   */
+  readonly index: [number, number];
+
+  private patternGroupNumber: number = -1;
+
   state: number = 1;
 
   static resetCounter() {
@@ -32,5 +40,13 @@ export class Field {
     this.state = 0;
 
     return changed;
+  }
+
+  copy(): Field {
+    const field = new Field(this.index[0], this.index[1]);
+    field.state = this.state;
+    field.patternGroup = this.patternGroup;
+    field.id = this.id;
+    return field;
   }
 }

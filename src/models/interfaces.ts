@@ -1,6 +1,10 @@
+export type PlayerType = 'human' | 'ai';
+
 export interface Player {
   name: string;
 }
+
+export type MoveWithoutPlayer = Omit<Move, 'player'>;
 
 export interface Move {
   player: Player;

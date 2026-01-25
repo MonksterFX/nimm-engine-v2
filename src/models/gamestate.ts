@@ -2,9 +2,14 @@ import { GameOptions, Orientation, Snapshot } from './interfaces.js';
 import { createEmtpy2D } from '../utils.js';
 import { Field } from './field.js';
 import { BitTable } from '../ai/utils/bittable.js';
+import { convertOrientation } from '../ai/utils/utils.js';
 
 export class GameState {
+  /** Current player, 0 or 1 */
+  currentPlayer: number = 0;
   private gameField: Field[][] = [];
+
+  /** Inverted game field for faster column access, references to the same fields as gameField */
   private gameFieldInverted: Field[][] = [];
 
   constructor(gameOptions?: GameOptions) {
@@ -20,7 +25,7 @@ export class GameState {
     this.gameField = createEmtpy2D(...gameOptions.size);
     this.gameFieldInverted = createEmtpy2D(
       gameOptions.size[1],
-      gameOptions.size[0]
+      gameOptions.size[0],
     );
 
     for (let row = 0; row < gameOptions.size[0]; row++) {
@@ -42,6 +47,33 @@ export class GameState {
   // TODO: Deep Copy
   public get columns(): Field[][] {
     return this.gameFieldInverted;
+  }
+
+  public clone(): GameState {
+    const game = new GameState();
+
+    // copy game field
+    game.gameField = this.gameField.map((row) =>
+      row.map((field) => field.copy()),
+    );
+    game.gameFieldInverted = createEmtpy2D(
+      this.gameFieldInverted.length,
+      this.gameFieldInverted[0].length,
+    );
+
+    for (let row = 0; row < game.gameField.length; row++) {
+      for (let col = 0; col < game.gameField[0].length; col++) {
+        game.gameFieldInverted[col][row] = game.gameField[row][col];
+      }
+    }
+
+    game.currentPlayer = this.currentPlayer;
+
+    return game;
+  }
+
+  getCurrentPlayer(): number {
+    return this.currentPlayer;
   }
 
   getById(id: number) {
@@ -96,23 +128,66 @@ export class GameState {
     const idx: number[] = [];
     const length = this.getSideLength(orientation);
 
+    const _stonesOnBoard = this.gameField
+      .flat()
+      .filter((v) => v.state === 1).length;
+
     for (let i = 0; i < length; i++) {
       const arr = this.getFromSide(i, orientation);
 
+      // we can take stones from the start to the first empty field
       let stoneFlag = false;
 
+      let stonesOnBoard = _stonesOnBoard;
+
       for (let step = 0; step < arr.length; step++) {
-        // exit condition
+        // empty field and we have already hit a stone
         if (arr[step].state === 0 && stoneFlag) break;
 
+        // hit a stone
         if (arr[step].state === 1) {
           stoneFlag = true;
-          idx.push(arr[step].id);
+
+          // move is valid only if at least one stone is still on the board
+          stonesOnBoard--;
+          if (stonesOnBoard === 0) break;
+
+          const id = arr[step].id;
+
+          if (this.getById(id).state === 0) {
+            console.table(
+              this.gameField.map((row) => row.map((field) => field.state)),
+            );
+            console.table(
+              this.gameField.map((row) => row.map((field) => field.id)),
+            );
+            const arr = this.getFromSide(i, orientation);
+            throw new Error(`stone with id ${id} is not empty`);
+          }
+
+          idx.push(id);
         }
       }
     }
 
     return idx;
+  }
+
+  /**
+   * Returns all valid moves for the current game state
+   * @returns Array of all valid moves
+   */
+  getAllValidMoves() {
+    const orientations = [
+      Orientation.RIGHT,
+      Orientation.LEFT,
+      Orientation.TOP,
+      Orientation.BOTTOM,
+    ];
+    const validMoves = orientations.map((orientation) =>
+      this.getValidMoves(orientation).map((id) => ({ id, orientation })),
+    );
+    return validMoves.flat();
   }
 
   isValidMoveByIndex(id: number, orientation: Orientation) {
@@ -160,10 +235,14 @@ export class GameState {
     return hitFirst;
   }
 
-  takeById(id: number, orientation: Orientation) {
+  convertIdToPosition(id: number) {
     const field = this.getById(id);
+    return { row: field?.index[0], col: field?.index[1] };
+  }
 
-    return this.take(field?.index[0], field?.index[1], orientation);
+  takeById(id: number, orientation: Orientation) {
+    const position = this.convertIdToPosition(id);
+    return this.take(position.row, position.col, orientation);
   }
 
   take(row: number, column: number, orientation: Orientation): number {
@@ -173,8 +252,15 @@ export class GameState {
 
     // TODO: check if move is allowed
     if (!this.isValidMove(arr, takeNumber)) {
-      throw Error(`invalid move`);
+      console.table(
+        this.gameField.map((row) => row.map((field) => field.state)),
+      );
+      throw Error(
+        `invalid move with id ${arr[takeNumber].id}, row ${row}, column ${column}, orientation ${convertOrientation(orientation)}`,
+      );
     }
+
+    this.currentPlayer = this.currentPlayer === 0 ? 1 : 0;
 
     const protocol = [];
 
@@ -208,17 +294,21 @@ export class GameState {
     return game;
   }
 
-  get BitTable() {
-    const bitSize = this.rows.flat().length;
+  get key(): string {
+    const thisBitTable = this.toBitTable();
+    return thisBitTable.getKeyString();
+  }
 
-    if (bitSize > 60) {
-      throw new Error(
-        `bit table has a max size of 60 bits, you requested ${bitSize}`
-      );
-    }
+  toBitTable(): BitTable {
+    const bitSize = this.gameField.flat().length;
+    const bitTable = BitTable.from(
+      bitSize,
+      this.gameField.map((row) => row.map((field) => field.state === 1)),
+    );
+    return bitTable;
+  }
 
-    const byteSize = 4 + 3 + Math.ceil(bitSize / 8);
-
-    return BitTable.full(Math.ceil(bitSize / 8));
+  prettyPrint(): void {
+    console.table(this.gameField.map((row) => row.map((field) => field.state)));
   }
 }

@@ -40,7 +40,7 @@ export function randomBetween(low = 0, high = 1) {
   return Math.round(Math.random() * (high - low) + low);
 }
 
-export function randomSelect(arr: any[]) {
+export function randomSelect<T>(arr: T[]) {
   return arr[Math.round(Math.random() * (arr.length - 1))];
 }
 
