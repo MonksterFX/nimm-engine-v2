@@ -1,13 +1,17 @@
 {
-  "name": "nimm-engine-v2",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "name": "@monksterfx/nimm-engine-v2",
+  "version": "0.1.1",
+  "description": "An engine for nimm 2D games",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "cli": "npx node dist/src/cli/index.js",
+    "cli": "node dist/cli/index.js",
     "cli:dev": "npx tsx src/cli/index.ts",
+    "test": "node --import tsx --test 'test/**/*.test.ts'",
     "build": "npx tsc",
     "build:c": "gcc -Wall -Wextra -std=c99 -lm performance/single-run.c -o performance/single-run",
     "build:wasm": "emcc -Wall -Wextra -std=c99 -O3 -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s EXPORTED_RUNTIME_METHODS='[\"UTF8ToString\",\"HEAP32\",\"_malloc\",\"_free\"]' -s EXPORT_NAME='createModule' performance/single-run-wasm.c -o performance/single-run-wasm.js -lm",
@@ -16,18 +20,20 @@
     "test:performance:c": "npm run build:c && npx tsx performance/test-single-run-c.ts",
     "profile:performance": "tsc --project tsconfig.profiling.json && npx 0x -o dist/performance/single-run.js"
   },
-  "author": "",
+  "author": "Max Moench",
   "license": "MIT",
   "dependencies": {
-    "@types/lodash": "^4.14.178",
-    "lodash": "^4.17.21",
     "readline": "^1.3.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@types/node": "^16.11.9",
+    "@types/node": "^22.19.7",
     "0x": "^6.0.0",
-    "ts-node": "^10.8.2",
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
+    "vitest": "^4.0.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MonksterFX/nimm-engine-v2.git"
   }
 }
