@@ -95,7 +95,8 @@ rl.on('line', (line: string) => {
   // engine move
   console.log('ai moves');
 
-  const move = solver.bestMove(game, 'win');
+  // AI is player 1, because HUMAN is starting first
+  const move = solver.bestMove(1); 
 
   if (move === null) {
     console.log('you won');
