@@ -28,29 +28,32 @@ This implementation features a 2D grid-based variant where players remove stones
 
 ### Prerequisites
 
-- Node.js 16.x or higher
+- Node.js 22.x or higher
 - npm or yarn
 
-### Install as Package
+### Install as a Package
 
 ```bash
-npm install nimm-engine-v2
+npm install @monksterfx/nimm-engine-v2 --registry=https://npm.pkg.github.com
 ```
 
 ### Local Development Setup
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd nimm-engine-v2
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Build the project:
+
 ```bash
 npm run build
 ```
@@ -132,6 +135,7 @@ const game = createGame({ size: [6, 6] });
 ```
 
 **Parameters:**
+
 - `options` (optional): `GameOptions` object
   - `size`: `[number, number]` - Grid dimensions as `[rows, columns]`
 
@@ -153,6 +157,7 @@ const move = engine.nextMove();
 ```
 
 **Methods:**
+
 - `nextMove()`: Returns a `Move` object for the current player
 - `randomMove()`: Returns a random valid move
 
@@ -182,6 +187,7 @@ const restored = GameState.load(snapshot);
 ```
 
 **Key Methods:**
+
 - `init(options)`: Initialize the game board
 - `take(row, col, orientation)`: Remove stones from a position
 - `isFinished()`: Check if the game has ended
@@ -206,6 +212,7 @@ import { Interfaces } from 'nimm-engine-v2';
 ```
 
 **Orientation Enum:**
+
 - `Orientation.TOP = 2`
 - `Orientation.BOTTOM = -2`
 - `Orientation.LEFT = 1`
@@ -264,6 +271,7 @@ npm install ../nimm-engine-v2/package/nimm-engine-v2-0.0.3.tgz
 ```
 
 The `vite-pack` script:
+
 1. Builds the TypeScript project (`npm run build`)
 2. Creates an npm package tarball using `npm pack`
 3. Saves it to the `package/` directory

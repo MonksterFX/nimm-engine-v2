@@ -5,11 +5,10 @@ import { BitTable } from '../ai/utils/bittable.js';
 import { convertOrientation } from '../ai/utils/utils.js';
 
 export class GameState {
-
   /** Current player, 0 or 1 */
-  private currentPlayer: number = 0;
+  currentPlayer: number = 0;
   private gameField: Field[][] = [];
-  
+
   /** Inverted game field for faster column access, references to the same fields as gameField */
   private gameFieldInverted: Field[][] = [];
 
@@ -26,7 +25,7 @@ export class GameState {
     this.gameField = createEmtpy2D(...gameOptions.size);
     this.gameFieldInverted = createEmtpy2D(
       gameOptions.size[1],
-      gameOptions.size[0]
+      gameOptions.size[0],
     );
 
     for (let row = 0; row < gameOptions.size[0]; row++) {
@@ -54,10 +53,12 @@ export class GameState {
     const game = new GameState();
 
     // copy game field
-    game.gameField = this.gameField.map(row => row.map(field => field.copy()));
+    game.gameField = this.gameField.map((row) =>
+      row.map((field) => field.copy()),
+    );
     game.gameFieldInverted = createEmtpy2D(
-        this.gameFieldInverted.length,
-        this.gameFieldInverted[0].length
+      this.gameFieldInverted.length,
+      this.gameFieldInverted[0].length,
     );
 
     for (let row = 0; row < game.gameField.length; row++) {
@@ -127,7 +128,9 @@ export class GameState {
     const idx: number[] = [];
     const length = this.getSideLength(orientation);
 
-    const _stonesOnBoard = this.gameField.flat().filter((v) => v.state === 1).length;
+    const _stonesOnBoard = this.gameField
+      .flat()
+      .filter((v) => v.state === 1).length;
 
     for (let i = 0; i < length; i++) {
       const arr = this.getFromSide(i, orientation);
@@ -151,9 +154,13 @@ export class GameState {
 
           const id = arr[step].id;
 
-          if(this.getById(id).state === 0) {
-            console.table(this.gameField.map(row => row.map(field => field.state)));
-            console.table(this.gameField.map(row => row.map(field => field.id)));
+          if (this.getById(id).state === 0) {
+            console.table(
+              this.gameField.map((row) => row.map((field) => field.state)),
+            );
+            console.table(
+              this.gameField.map((row) => row.map((field) => field.id)),
+            );
             const arr = this.getFromSide(i, orientation);
             throw new Error(`stone with id ${id} is not empty`);
           }
@@ -171,8 +178,15 @@ export class GameState {
    * @returns Array of all valid moves
    */
   getAllValidMoves() {
-    const orientations = [Orientation.RIGHT, Orientation.LEFT, Orientation.TOP, Orientation.BOTTOM];
-    const validMoves = orientations.map(orientation => this.getValidMoves(orientation).map(id => ({ id, orientation })));
+    const orientations = [
+      Orientation.RIGHT,
+      Orientation.LEFT,
+      Orientation.TOP,
+      Orientation.BOTTOM,
+    ];
+    const validMoves = orientations.map((orientation) =>
+      this.getValidMoves(orientation).map((id) => ({ id, orientation })),
+    );
     return validMoves.flat();
   }
 
@@ -223,7 +237,7 @@ export class GameState {
 
   convertIdToPosition(id: number) {
     const field = this.getById(id);
-    return {row: field?.index[0], col: field?.index[1]}
+    return { row: field?.index[0], col: field?.index[1] };
   }
 
   takeById(id: number, orientation: Orientation) {
@@ -238,8 +252,12 @@ export class GameState {
 
     // TODO: check if move is allowed
     if (!this.isValidMove(arr, takeNumber)) {
-      console.table(this.gameField.map(row => row.map(field => field.state)));
-      throw Error(`invalid move with id ${arr[takeNumber].id}, row ${row}, column ${column}, orientation ${convertOrientation(orientation)}`);
+      console.table(
+        this.gameField.map((row) => row.map((field) => field.state)),
+      );
+      throw Error(
+        `invalid move with id ${arr[takeNumber].id}, row ${row}, column ${column}, orientation ${convertOrientation(orientation)}`,
+      );
     }
 
     this.currentPlayer = this.currentPlayer === 0 ? 1 : 0;
@@ -283,7 +301,14 @@ export class GameState {
 
   toBitTable(): BitTable {
     const bitSize = this.gameField.flat().length;
-    const bitTable = BitTable.from(bitSize, this.gameField.map(row => row.map(field => field.state === 1)));
-    return bitTable
+    const bitTable = BitTable.from(
+      bitSize,
+      this.gameField.map((row) => row.map((field) => field.state === 1)),
+    );
+    return bitTable;
+  }
+
+  prettyPrint(): void {
+    console.table(this.gameField.map((row) => row.map((field) => field.state)));
   }
 }

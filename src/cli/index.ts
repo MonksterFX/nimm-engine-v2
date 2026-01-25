@@ -2,17 +2,18 @@
 // TODO: refractor whole process
 
 import readline from 'readline';
-import { GameEngine } from '../engine/index.js';
 import { GameState } from '../models/gamestate.js';
 import { Orientation } from '../models/interfaces.js';
 import plotter from './plotter.js';
+import { MCTSSolver } from '../ai/solver/mcts.js';
 
 // flags
 const SHOW_PATTERNS = false;
 
 // init game
 const game = new GameState();
-const engine = new GameEngine(game, ['human', 'ai'], { difficulty: 'hard' });
+const solver = new MCTSSolver();
+solver.initialize(game);
 
 // TODO: options
 // -h: help
@@ -94,8 +95,16 @@ rl.on('line', (line: string) => {
   // engine move
   console.log('ai moves');
 
-  const eMove = engine.nextMove();
-  game.take(eMove.position[0], eMove.position[1], eMove.orientation);
+  const move = solver.bestMove(game, 'win');
+
+  if (move === null) {
+    console.log('you won');
+    rl.close();
+    return;
+  }
+
+  const eMove = game.takeById(move.id, move.orientation);
+
   plotter.field(game.rows);
 
   if (SHOW_PATTERNS) {

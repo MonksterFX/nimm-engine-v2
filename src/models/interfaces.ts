@@ -21,11 +21,6 @@ export interface GameOptions {
   size: [number, number];
 }
 
-export interface GameEngineOptions {
-  players: [PlayerType, PlayerType];
-  difficulty: 'easy' | 'hard';
-}
-
 export enum Orientation {
   TOP = 2,
   BOTTOM = -2,

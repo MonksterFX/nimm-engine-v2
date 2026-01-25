@@ -10,9 +10,9 @@ export abstract class Solver {
     abstract readonly name: string
     abstract readonly description: string
 
-    abstract initialize(gameState: GameState): void;
+    abstract initialize(gameState: GameState, optimizeForPlayer: number): void;
 
-    abstract bestMove(gameState: GameState, optimizeFor: 'win' | 'loss'): Move | null;
+    abstract update(gameState: GameState): void;
 
-    abstract afterMove(move: any, gameState: GameState): void;
+    abstract bestMove(optimizeForPlayer: number): Move | null;
 }
