@@ -40,3 +40,8 @@ node_modules/
 # tasks.json
 # tasks/ 
 
+.cursor
+.github
+.taskmaster
+.vscode
+
