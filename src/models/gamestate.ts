@@ -155,12 +155,6 @@ export class GameState {
           const id = arr[step].id;
 
           if (this.getById(id).state === 0) {
-            console.table(
-              this.gameField.map((row) => row.map((field) => field.state)),
-            );
-            console.table(
-              this.gameField.map((row) => row.map((field) => field.id)),
-            );
             const arr = this.getFromSide(i, orientation);
             throw new Error(`stone with id ${id} is not empty`);
           }
@@ -252,9 +246,9 @@ export class GameState {
 
     // TODO: check if move is allowed
     if (!this.isValidMove(arr, takeNumber)) {
-      console.table(
-        this.gameField.map((row) => row.map((field) => field.state)),
-      );
+      // console.table(
+      //   this.gameField.map((row) => row.map((field) => field.state)),
+      // );
       throw Error(
         `invalid move with id ${arr[takeNumber].id}, row ${row}, column ${column}, orientation ${convertOrientation(orientation)}`,
       );

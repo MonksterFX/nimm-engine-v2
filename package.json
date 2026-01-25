@@ -12,7 +12,7 @@
     "cli": "node dist/cli/index.js",
     "cli:dev": "npx tsx src/cli/index.ts",
     "test": "node --import tsx --test 'test/**/*.test.ts'",
-    "build": "npx tsc",
+    "build": "rimraf dist && tsc",
     "build:c": "gcc -Wall -Wextra -std=c99 -lm performance/single-run.c -o performance/single-run",
     "build:wasm": "emcc -Wall -Wextra -std=c99 -O3 -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s EXPORTED_RUNTIME_METHODS='[\"UTF8ToString\",\"HEAP32\",\"_malloc\",\"_free\"]' -s EXPORT_NAME='createModule' performance/single-run-wasm.c -o performance/single-run-wasm.js -lm",
     "test:performance": "npx tsx performance/single-run.ts",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/node": "^22.19.7",
     "0x": "^6.0.0",
+    "rimraf": "^6.1.2",
     "tsx": "^4.7.0"
   },
   "repository": {
