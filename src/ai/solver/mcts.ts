@@ -1,5 +1,6 @@
 import { Move, Solver } from './solver.js';
 import { GameState } from '../../models/gamestate.js';
+import { convertOrientation } from '../utils/utils.js';
 
 export class MCTSSolver implements Solver {
   readonly name = 'MCTS Solver';
@@ -238,6 +239,17 @@ export class MCTS {
     if (this.root.children.length === 0) {
       // No children means no moves available or not expanded yet
       return null;
+    }
+
+    // helps to understand the decision making process
+    if(process.env.ALGO_DEBUG){
+      console.log("MCTS: uct values");
+      console.table(this.root.children.map((c) => ({
+        move: `${c.move.id} ${convertOrientation(c.move.orientation)}`,
+        uct: c.uctValue,
+        visits: c.visits,
+        wins: c.wins,
+      })).sort((a, b) => b.uct - a.uct));
     }
 
     // find the child with the most visits
